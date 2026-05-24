@@ -157,18 +157,32 @@ st.write(f"{frequent_k}-Itemsets: {len(itemsets_selected)}")
 # Show frequent itemsets
 if frequent_itemsets:
     itemsets_display = []
+
     for itemset, tidset in frequent_itemsets:
         if len(itemset) == frequent_k:
             itemsets_display.append({
                 'Itemset': ', '.join(list(itemset)),
                 'Support': len(tidset) / len(transactions)
             })
-    
-    # Convert to DataFrame for display
-    frequent_itemsets_df = pd.DataFrame(itemsets_display)
-    frequent_itemsets_df = frequent_itemsets_df.sort_values(by="Support", ascending=False).reset_index(drop=True)
-    st.dataframe(frequent_itemsets_df.head(50), use_container_width=True)
 
+    if itemsets_display:
+        frequent_itemsets_df = pd.DataFrame(itemsets_display)
+
+        frequent_itemsets_df = frequent_itemsets_df.sort_values(
+            by="Support",
+            ascending=False
+        ).reset_index(drop=True)
+
+        st.dataframe(
+            frequent_itemsets_df.head(50),
+            use_container_width=True
+        )
+    else:
+        st.warning(
+            f"Tidak ditemukan Frequent {frequent_k}-Itemset yang memenuhi minimum support."
+        )
+else:
+    st.warning("Tidak ditemukan frequent itemset.")
 # ================================================================
 # Aturan Asosiasi
 # ================================================================
@@ -181,8 +195,20 @@ rules = calculate_confidence_lift(frequent_itemsets, transactions)
 # Display the association rules
 if rules:
     rules_df = pd.DataFrame(rules)
-    rules_df = rules_df.sort_values(by="Lift", ascending=False).reset_index(drop=True)
-    st.dataframe(rules_df.head(30), use_container_width=True)
+
+    rules_df = rules_df.sort_values(
+        by="Lift",
+        ascending=False
+    ).reset_index(drop=True)
+
+    st.dataframe(
+        rules_df.head(30),
+        use_container_width=True
+    )
+else:
+    st.warning(
+        "Tidak ditemukan aturan asosiasi yang memenuhi minimum confidence dan minimum lift."
+    )
 
 # ================================================================
 # Top-K Bundling (Support Tertinggi)
@@ -190,9 +216,24 @@ if rules:
 st.subheader("TOP-K Bundling (Support Tertinggi)")
 
 # Top-K Bundling based on association rules
-top_k_bundles = sorted(rules, key=lambda x: x['Support'], reverse=True)
-top_k_bundles_display = top_k_bundles[:select_top_k]
+if rules:
+    top_k_bundles = sorted(
+        rules,
+        key=lambda x: x['Support'],
+        reverse=True
+    )
 
-top_k_df = pd.DataFrame(top_k_bundles_display)
+    top_k_bundles_display = top_k_bundles[:select_top_k]
+
+    top_k_df = pd.DataFrame(top_k_bundles_display)
+
+    st.dataframe(
+        top_k_df,
+        use_container_width=True
+    )
+else:
+    st.info(
+        "Tidak ada bundling yang dapat ditampilkan karena tidak ditemukan aturan asosiasi yang valid."
+    )
 
 st.dataframe(top_k_df, use_container_width=True)
